@@ -1,4 +1,4 @@
-# lab-flask-mysql
+# lab-flask-sqlalchemy
 
 This repo demonstrates how to create a simple RESTful service using Python Flask and MySQL.
 The resource model is persistences using SQLAlchemy to keep the application simple. It's purpose is to show the correct API and return codes that should be used for a REST API.
