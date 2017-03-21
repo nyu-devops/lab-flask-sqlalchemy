@@ -8,6 +8,10 @@ import json
 from flask_api import status    # HTTP Status Codes
 import server
 
+import coverage
+COV = coverage.coverage(branch=True, include='server*')
+COV.start()
+
 ######################################################################
 #  T E S T   C A S E S
 ######################################################################
@@ -26,6 +30,10 @@ class TestPetServer(unittest.TestCase):
         server.db.session.add(server.Pet(name='kitty', category='cat'))
         server.db.session.commit()
         self.app = server.app.test_client()
+
+    def tearDown(self):
+        server.db.session.remove()
+        server.db.drop_all()
 
     def test_index(self):
         resp = self.app.get('/')
@@ -78,6 +86,10 @@ class TestPetServer(unittest.TestCase):
         self.assertEqual( resp.status_code, status.HTTP_200_OK )
         new_json = json.loads(resp.data)
         self.assertEqual (new_json['category'], 'tabby')
+
+    def test_update_pet_with_no_data(self):
+        resp = self.app.put('/pets/2', data=None, content_type='application/json')
+        self.assertEqual( resp.status_code, status.HTTP_400_BAD_REQUEST )
 
     def test_update_pet_with_no_name(self):
         new_pet = {'category': 'dog'}
@@ -148,4 +160,8 @@ class TestPetServer(unittest.TestCase):
 #   M A I N
 ######################################################################
 if __name__ == '__main__':
-    unittest.main()
+    # unittest.main()
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestPetServer)
+    unittest.TextTestRunner(verbosity=2).run(suite)
+    COV.stop()
+    COV.report()

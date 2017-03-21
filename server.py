@@ -14,8 +14,9 @@
 
 import os
 import logging
-from flask import Flask, Response, jsonify, request, json, url_for, make_response
+from flask import Flask, Response, jsonify, request, json, url_for, make_response, abort
 from flask_api import status    # HTTP Status Codes
+from werkzeug.exceptions import NotFound
 
 # For this example we'll use SQLAlchemy, a popular ORM that supports a
 # variety of backends including SQLite, MySQL, and PostgreSQL
@@ -36,17 +37,59 @@ port = os.getenv('PORT', '5000')
 db = SQLAlchemy(app)
 
 ######################################################################
+# Custom Exceptions
+######################################################################
+class DataValidationError(ValueError):
+    pass
+
+######################################################################
+# ERROR Handling
+######################################################################
+@app.errorhandler(DataValidationError)
+def request_validation_error(e):
+    return make_response(jsonify(status=400, error='Bad Request', message=e.message), status.HTTP_400_BAD_REQUEST)
+
+@app.errorhandler(404)
+def not_found(e):
+    return make_response(jsonify(status=404, error='Not Found', message=e.description), status.HTTP_404_NOT_FOUND)
+
+@app.errorhandler(400)
+def bad_request(e):
+    return make_response(jsonify(status=400, error='Bad Request', message=e.message), status.HTTP_400_BAD_REQUEST)
+
+@app.errorhandler(405)
+def method_not_allowed(e):
+    return make_response(jsonify(status=405, error='Method not Allowed', message='Your request method is not supported. Check your HTTP method and try again.'), status.HTTP_405_METHOD_NOT_ALLOWED)
+
+@app.errorhandler(500)
+def internal_error(e):
+    return make_response(jsonify(status=500, error='Internal Server Error', message='Huston... we have a problem.'), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+######################################################################
 # Pet Model for database
 ######################################################################
 class Pet(db.Model):
     """A single pet"""
+    __tablename__ = "pets"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(63))
     category = db.Column(db.String(63))
 
+    def self_url(self):
+        return url_for('get_pets', id=self.id, _external=True)
+
     def serialize(self):
         return { "id": self.id, "name": self.name, "category": self.category }
 
+    def deserialize(self, data):
+        try:
+            self.name = data['name']
+            self.category = data['category']
+        except KeyError as e:
+            raise DataValidationError('Invalid pet: missing ' + e.args[0])
+        except TypeError as e:
+            raise DataValidationError('Invalid pet: body of request contained bad or no data')
+        return self
 
 ######################################################################
 # GET INDEX
@@ -78,75 +121,39 @@ def list_pets():
 ######################################################################
 @app.route('/pets/<int:id>', methods=['GET'])
 def get_pets(id):
-    pet = Pet.query.filter(Pet.id == id).first()
-    if pet:
-        message = pet.serialize()
-        rc = status.HTTP_200_OK
-    else:
-        message = { 'error' : 'Pet with id: %s was not found' % str(id) }
-        rc = status.HTTP_404_NOT_FOUND
-
-    return make_response(jsonify(message), rc)
+    pet = Pet.query.get(id)
+    if not pet:
+        raise NotFound("Pet with id '{}' was not found.".format(id))
+    return make_response(jsonify(pet.serialize()), status.HTTP_200_OK)
 
 ######################################################################
 # ADD A NEW PET
 ######################################################################
 @app.route('/pets', methods=['POST'])
 def create_pets():
-    payload = request.get_json()
-    try:
-        if payload and 'name' in payload and 'category' in payload:
-            pet = Pet(name=payload['name'], category=payload['category'])
-            db.session.add(pet)
-            db.session.commit()
-            id = pet.id
-            message = pet.serialize()
-            rc = status.HTTP_201_CREATED
-        else:
-            message = { 'error' : 'Missing data fields in request' }
-            rc = status.HTTP_400_BAD_REQUEST
-    except TypeError:
-        message = { 'error' : 'Data Type is not valid' }
-        rc = status.HTTP_400_BAD_REQUEST
-
-    response = make_response(jsonify(message), rc)
-    if rc == status.HTTP_201_CREATED:
-        response.headers['Location'] = url_for('get_pets', id=id)
-    return response
+    pet = Pet()
+    pet.deserialize(request.get_json())
+    db.session.add(pet)
+    db.session.commit()
+    message = pet.serialize()
+    return make_response(jsonify(message), status.HTTP_201_CREATED, {'Location': pet.self_url() })
 
 ######################################################################
 # UPDATE AN EXISTING PET
 ######################################################################
 @app.route('/pets/<int:id>', methods=['PUT'])
 def update_pets(id):
-    pet = Pet.query.filter(Pet.id == id).first()
-    if pet:
-        payload = request.get_json()
-        try:
-            if 'name' in payload and 'category' in payload:
-                pet.name = payload['name']
-                pet.category = payload['category']
-                db.session.commit()
-                message = pet.serialize()
-                rc = status.HTTP_200_OK
-            else:
-                message = { 'error' : 'Missing data fields in request' }
-                rc = status.HTTP_400_BAD_REQUEST
-        except TypeError:
-            message = { 'error' : 'Data Type is not valid' }
-            rc = status.HTTP_400_BAD_REQUEST
-    else:
-        message = { 'error' : 'Pet %s was not found' % id }
-        rc = status.HTTP_404_NOT_FOUND
-
-    return make_response(jsonify(message), rc)
+    pet = Pet.query.get_or_404(id)
+    pet.deserialize(request.get_json())
+    db.session.commit()
+    return make_response(jsonify(pet.serialize()), status.HTTP_200_OK)
 
 ######################################################################
 # DELETE A PET
 ######################################################################
 @app.route('/pets/<int:id>', methods=['DELETE'])
 def delete_pets(id):
-    pet = Pet.query.filter(Pet.id == id).first()
+    pet = Pet.query.get(id)
     if pet:
         db.session.delete(pet)
         db.session.commit()
