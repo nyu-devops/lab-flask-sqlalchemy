@@ -113,13 +113,11 @@ class Pet(db.Model):
     category = db.Column(db.String(63))
     available = db.Column(db.Boolean())
 
-    def create(self):
-        """ Creates a Pet in the database """
-        Pet.session.add(self)
-        Pet.session.commit()
-
     def save(self):
         """ Saves an existing Pet in the database """
+        # if the id is None it hasn't been added to the database
+        if not self.id:
+            Pet.session.add(self)
         Pet.session.commit()
 
     def delete(self):
@@ -254,7 +252,7 @@ def create_pets():
         data = request.get_json()
     pet = Pet()
     pet.deserialize(data)
-    pet.create()
+    pet.save()
     message = pet.serialize()
     return make_response(jsonify(message), status.HTTP_201_CREATED,
                          {'Location': url_for('get_pets', pet_id=pet.id, _external=True)})
@@ -295,7 +293,7 @@ def delete_pets(pet_id):
 ######################################################################
 
 #@app.before_first_request
-def initialize_logging(log_level):
+def initialize_logging(log_level=logging.INFO):
     """ Initialized the default logging to STDOUT """
     if not app.debug:
         print 'Setting up logging...'

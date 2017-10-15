@@ -46,8 +46,8 @@ class TestPetServer(unittest.TestCase):
     def setUp(self):
         server.db.drop_all()    # clean up the last tests
         server.Pet.initialize_db(server.db)
-        server.Pet(name='fido', category='dog', available=True).create()
-        server.Pet(name='kitty', category='cat', available=True).create()
+        server.Pet(name='fido', category='dog', available=True).save()
+        server.Pet(name='kitty', category='cat', available=True).save()
         self.app = server.app.test_client()
 
     def tearDown(self):
