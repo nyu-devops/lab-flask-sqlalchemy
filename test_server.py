@@ -83,11 +83,7 @@ class TestPetServer(unittest.TestCase):
         # save the current number of pets for later comparrison
         pet_count = self.get_pet_count()
         # add a new pet
-        new_pet = {
-            'name': 'sammy',
-            'category': 'snake',
-            'available': 'True'
-        }
+        new_pet = {'name': 'sammy', 'category': 'snake', 'available': 'True'}
         data = json.dumps(new_pet)
         resp = self.app.post('/pets', data=data, content_type='application/json')
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
@@ -167,11 +163,6 @@ class TestPetServer(unittest.TestCase):
         data = json.dumps(new_pet)
         resp = self.app.post('/pets', data=data)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_get_nonexisting_pet(self):
-        """ Get a Pet that doesnt exist """
-        resp = self.app.get('/pets/99')
-        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_query_pet_list(self):
         """ test Query of Pet list """
