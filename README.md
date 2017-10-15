@@ -1,20 +1,13 @@
-# lab-flask-tdd
+# lab-flask-sqlalchemy
 
-[![Build Status](https://travis-ci.org/rofrano/lab-flask-tdd.svg?branch=master)](https://travis-ci.org/rofrano/lab-flask-tdd)
-[![Codecov](https://img.shields.io/codecov/c/github/rofrano/lab-flask-tdd.svg)]()
+<!-- [![Build Status](https://travis-ci.org/rofrano/lab-flask-tdd.svg?branch=master)](https://travis-ci.org/rofrano/lab-flask-tdd)
+[![Codecov](https://img.shields.io/codecov/c/github/rofrano/lab-flask-tdd.svg)]() -->
 
-NYU DevOps lab on Test Driven Development
+NYU DevOps lab on using SQLAlchemy with Flask
 
 ## Introduction
 
-One of my favorite quotes is:
-
-_“If it's worth building, it's worth testing.
-If it's not worth testing, why are you wasting your time working on it?”_
-
-As Software Engineers we need to have the discipline to ensure that our code works as expected and continues to do so regardless of any changes, refactoring, or the introduction of new functionality.
-
-This lab introduces Test Driven Development using `PyUnit` and `nose`. It also explores the use of using RSpec syntax with Python through the introduction of `noseOfYeti` and `expects` as plug-ins that make test cases more readable.
+This lab shows how to use SQLAlchemy with Flask so that you don't need to worry about making raw database queries. SQLAlchemy is an Object Relational Mapper (ORM) that will allow you to work with classes instead of database records. This example extends our Pet Store to use a relational database for it's persistence.
 
 This lab also demonstrates how to create a simple RESTful service using Python Flask and SQLite.
 The resource model is persistences using SQLAlchemy to keep the application simple. It's purpose is to show the correct API and return codes that should be used for a REST API.
@@ -31,24 +24,21 @@ Download [Vagrant](https://www.vagrantup.com/)
 
 Then all you have to do is clone this repo and invoke vagrant:
 
-    git clone https://github.com/nyu-devops/ab-flask-tdd.git
-    cd lab-flask-tdd
-    vagrant up && vagrant ssh
+    git clone https://github.com/nyu-devops/lab-flask-sqlalchemy.git
+    cd lab-flask-sqlalchemy
+    vagrant up
+    vagrant ssh
     cd /vagrant
 
 You can now run `nosetests` to run the tests.
 
 ## Manually running the Tests
 
-Run the tests using `unittest`
-
-    $ python -m unittest discover
-
 Run the tests using `nose`
 
     $ nosetests
 
-Nose is configured to automatically include the flags `--with-spec --spec-color` so that red-green-refactor is meaningful. If you are in a command shell that supports colors, passing tests will be green while failing tests will be red.
+**Nose** is configured to automatically include the flags `--with-spec --spec-color` so that red-green-refactor is meaningful. If you are in a command shell that supports colors, passing tests will be green while failing tests will be red.
 
 Run Code Coverage to see how well your test cases exercise your code:
 
@@ -77,6 +67,6 @@ If the VM is no longer needed you can remove it with:
 
     * server.py -- the main Service using Python Flask
     * test_server.py -- test cases using unittest
-    * ./spec/test_server_spec.py -- test specs using noseOfYeti
+    * test_pets.py -- test cases using just the Pet model
 
-This repo is part of the DevOps course at NYU.
+This repo is part of the DevOps course CSCI-GA.3033-013/014 at NYU.
