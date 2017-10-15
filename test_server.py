@@ -46,8 +46,8 @@ class TestPetServer(unittest.TestCase):
     def setUp(self):
         server.db.drop_all()    # clean up the last tests
         server.Pet.initialize_db(server.db)
-        server.Pet(name='fido', category='dog').create()
-        server.Pet(name='kitty', category='cat').create()
+        server.Pet(name='fido', category='dog', available=True).create()
+        server.Pet(name='kitty', category='cat', available=True).create()
         self.app = server.app.test_client()
 
     def tearDown(self):
@@ -164,20 +164,46 @@ class TestPetServer(unittest.TestCase):
         resp = self.app.post('/pets', data=data)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_query_pet_list(self):
-        """ test Query of Pet list """
+    def test_query_pet_category(self):
+        """ Query Pet by category """
         resp = self.app.get('/pets', query_string='category=dog')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertTrue(len(resp.data) > 0)
-        self.assertTrue('fido' in resp.data)
-        self.assertFalse('kitty' in resp.data)
+        self.assertGreater(len(resp.data), 0)
+        self.assertIn('fido', resp.data)
+        self.assertNotIn('kitty', resp.data)
         data = json.loads(resp.data)
         query_item = data[0]
         self.assertEqual(query_item['category'], 'dog')
 
-    # def test_method_not_allowed(self):
-    #     resp = self.app.put('/pets')
-    #     self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+    def test_query_pet_name(self):
+        """ Query Pet by name """
+        resp = self.app.get('/pets', query_string='name=fido')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertGreater(len(resp.data), 0)
+        self.assertIn('fido', resp.data)
+        self.assertNotIn('kitty', resp.data)
+        data = json.loads(resp.data)
+        query_item = data[0]
+        self.assertEqual(query_item['name'], 'fido')
+
+    def test_query_pet_avail(self):
+        """ Query Pet by availability """
+        # there should be none that are not available
+        # resp = self.app.get('/pets', query_string='available=false')
+        # self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        # self.assertEqual(len(resp.data), 0)
+        # there should be available
+        resp = self.app.get('/pets', query_string='available=true')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertGreater(len(resp.data), 0)
+        # check we have both
+        self.assertIn('fido', resp.data)
+        self.assertIn('kitty', resp.data)
+
+    def test_method_not_allowed(self):
+        """ Test for method now allowed """
+        resp = self.app.put('/pets')
+        self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 ######################################################################

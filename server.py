@@ -105,13 +105,13 @@ def internal_server_error(error):
 ######################################################################
 class Pet(db.Model):
     """A single pet"""
+    session = None  # database session
 
+    # Table Schema
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(63))
     category = db.Column(db.String(63))
     available = db.Column(db.Boolean())
-
-    session = None  # database session
 
     def create(self):
         """ Creates a Pet in the database """
@@ -148,10 +148,10 @@ class Pet(db.Model):
         return self
 
     @staticmethod
-    def initialize_db(db):
+    def initialize_db(database):
         """ Initializes the database session """
-        Pet.session = db.session
-        db.create_all()  # make our sqlalchemy tables
+        Pet.session = database.session
+        database.create_all()  # make our sqlalchemy tables
 
     @staticmethod
     def all():
@@ -207,7 +207,7 @@ def list_pets():
     elif name:
         pets = Pet.find_by_name(name)
     elif available:
-        pets = Pet.find_by_availability(available)
+        pets = Pet.find_by_availability(available.lower() in ['true', '1', 't'])
     else:
         pets = Pet.all()
 
