@@ -47,7 +47,7 @@ class TestPetServer(unittest.TestCase):
     def setUp(self):
         server.init_db()
         db.drop_all()    # clean up the last tests
-        Pet.init_db(server.app)
+        db.create_all()  # create new tables
         Pet(name='fido', category='dog', available=True).save()
         Pet(name='kitty', category='cat', available=True).save()
         self.app = server.app.test_client()
