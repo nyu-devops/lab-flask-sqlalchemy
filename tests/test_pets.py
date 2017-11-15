@@ -21,7 +21,8 @@ coverage report -m
 """
 
 import unittest
-from server import Pet, DataValidationError, app, db
+from server import app
+from models import Pet, DataValidationError, db
 
 ######################################################################
 #  T E S T   C A S E S
@@ -40,8 +41,8 @@ class TestPets(unittest.TestCase):
         pass
 
     def setUp(self):
-        db.drop_all()    # clean up the last tests
-        Pet.initialize_db(db)
+        Pet.init_db(app)
+        #db.drop_all()    # clean up the last tests
 
     def tearDown(self):
         db.session.remove()

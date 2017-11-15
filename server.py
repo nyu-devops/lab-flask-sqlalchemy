@@ -32,10 +32,7 @@ import sys
 import logging
 from flask import Flask, jsonify, request, url_for, make_response, abort
 from flask_api import status    # HTTP Status Codes
-
-# For this example we'll use SQLAlchemy, a popular ORM that supports a
-# variety of backends including SQLite, MySQL, and PostgreSQL
-from flask_sqlalchemy import SQLAlchemy
+from models import Pet, DataValidationError
 
 # Create Flask application
 app = Flask(__name__)
@@ -48,14 +45,6 @@ app.config['LOGGING_LEVEL'] = logging.INFO
 # Pull options from environment
 DEBUG = (os.getenv('DEBUG', 'False') == 'True')
 PORT = os.getenv('PORT', '5000')
-
-db = SQLAlchemy(app)
-
-######################################################################
-# Custom Exceptions
-######################################################################
-class DataValidationError(ValueError):
-    pass
 
 ######################################################################
 # Error Handlers
@@ -99,88 +88,6 @@ def internal_server_error(error):
     message = error.message or str(error)
     app.logger.info(message)
     return jsonify(status=500, error='Internal Server Error', message=message), 500
-
-######################################################################
-# Pet Model for database
-######################################################################
-class Pet(db.Model):
-    """A single pet"""
-    session = None  # database session
-
-    # Table Schema
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(63))
-    category = db.Column(db.String(63))
-    available = db.Column(db.Boolean())
-
-    def save(self):
-        """ Saves an existing Pet in the database """
-        # if the id is None it hasn't been added to the database
-        if not self.id:
-            Pet.session.add(self)
-        Pet.session.commit()
-
-    def delete(self):
-        """ Deletes a Pet from the database """
-        Pet.session.delete(self)
-        Pet.session.commit()
-
-    def serialize(self):
-        """ serializes a Pet into a dictionary """
-        return {"id": self.id,
-                "name": self.name,
-                "category": self.category,
-                "available": self.available}
-
-    def deserialize(self, data):
-        """ deserializes a Pet my marshalling the data """
-        try:
-            self.name = data['name']
-            self.category = data['category']
-            self.available = data['available']
-        except KeyError as error:
-            raise DataValidationError('Invalid pet: missing ' + error.args[0])
-        except TypeError as error:
-            raise DataValidationError('Invalid pet: body of request contained' \
-                                      'bad or no data')
-        return self
-
-    @staticmethod
-    def initialize_db(database):
-        """ Initializes the database session """
-        Pet.session = database.session
-        database.create_all()  # make our sqlalchemy tables
-
-    @staticmethod
-    def all():
-        """ Return all of the Pets in the database """
-        return Pet.query.all()
-
-    @staticmethod
-    def find(pet_id):
-        """ Find a Pet by it's id """
-        return Pet.query.get(pet_id)
-
-    @staticmethod
-    def find_or_404(pet_id):
-        """ Find a Pet by it's id """
-        return Pet.query.get_or_404(pet_id)
-
-    @staticmethod
-    def find_by_name(name):
-        """ Query that finds Pets by their name """
-        return Pet.query.filter(Pet.name == name)
-
-    @staticmethod
-    def find_by_category(category):
-        """ Query that finds Pets by their category """
-        return Pet.query.filter(Pet.category == category)
-
-    @staticmethod
-    def find_by_availability(available=True):
-        """ Query that finds Pets by their availability """
-        return Pet.query.filter(Pet.available == available)
-
 
 ######################################################################
 # GET INDEX
@@ -292,6 +199,11 @@ def delete_pets(pet_id):
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
 
+@app.before_first_request
+def init_db():
+    """ Initialies the SQLAlchemy app """
+    Pet.init_db(app)
+
 #@app.before_first_request
 def initialize_logging(log_level=logging.INFO):
     """ Initialized the default logging to STDOUT """
@@ -322,5 +234,4 @@ if __name__ == "__main__":
     print "        P E T   R E S T   A P I   S E R V I C E "
     print "************************************************************"
     initialize_logging(app.config['LOGGING_LEVEL'])
-    Pet.initialize_db(db)
     app.run(host='0.0.0.0', port=int(PORT), debug=DEBUG)

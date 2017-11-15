@@ -25,6 +25,7 @@ import logging
 import json
 from flask_api import status    # HTTP Status Codes
 import server
+from models import Pet, db
 
 ######################################################################
 #  T E S T   C A S E S
@@ -44,15 +45,16 @@ class TestPetServer(unittest.TestCase):
         pass
 
     def setUp(self):
-        server.db.drop_all()    # clean up the last tests
-        server.Pet.initialize_db(server.db)
-        server.Pet(name='fido', category='dog', available=True).save()
-        server.Pet(name='kitty', category='cat', available=True).save()
+        server.init_db()
+        db.drop_all()    # clean up the last tests
+        Pet.init_db(server.app)
+        Pet(name='fido', category='dog', available=True).save()
+        Pet(name='kitty', category='cat', available=True).save()
         self.app = server.app.test_client()
 
     def tearDown(self):
-        server.db.session.remove()
-        server.db.drop_all()
+        db.session.remove()
+        db.drop_all()
 
     def test_index(self):
         """ Get the home page """
