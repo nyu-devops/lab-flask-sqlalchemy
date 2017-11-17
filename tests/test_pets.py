@@ -21,8 +21,8 @@ coverage report -m
 """
 
 import unittest
-from server import app
-from models import Pet, DataValidationError, db
+from app import app, db
+from app.models import Pet, DataValidationError
 
 ######################################################################
 #  T E S T   C A S E S
@@ -34,15 +34,16 @@ class TestPets(unittest.TestCase):
     def setUpClass(cls):
         app.debug = False
         # Set up the test database
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db/test.db'
+        #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db/test.db'
 
     @classmethod
     def tearDownClass(cls):
         pass
 
     def setUp(self):
-        Pet.init_db(app)
-        #db.drop_all()    # clean up the last tests
+        #Pet.init_db()
+        db.drop_all()    # clean up the last tests
+        db.create_all()  # make our sqlalchemy tables
 
     def tearDown(self):
         db.session.remove()
@@ -138,10 +139,11 @@ class TestPets(unittest.TestCase):
     def test_find_pet(self):
         """ Find a Pet by ID """
         Pet(name="fido", category="dog", available=True).save()
-        Pet(name="kitty", category="cat", available=False).save()
-        pet = Pet.find(2)
+        kitty = Pet(name="kitty", category="cat", available=False)
+        kitty.save()
+        pet = Pet.find(kitty.id)
         self.assertIsNot(pet, None)
-        self.assertEqual(pet.id, 2)
+        self.assertEqual(pet.id, kitty.id)
         self.assertEqual(pet.name, "kitty")
         self.assertEqual(pet.available, False)
 

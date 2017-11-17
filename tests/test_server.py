@@ -24,8 +24,8 @@ import unittest
 import logging
 import json
 from flask_api import status    # HTTP Status Codes
-import server
-from models import Pet, db
+from app.models import Pet
+from app import server, db
 
 ######################################################################
 #  T E S T   C A S E S
@@ -38,7 +38,7 @@ class TestPetServer(unittest.TestCase):
         server.app.debug = False
         server.initialize_logging(logging.INFO)
         # Set up the test database
-        server.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db/test.db'
+        #server.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db/test.db'
 
     @classmethod
     def tearDownClass(cls):
@@ -63,20 +63,23 @@ class TestPetServer(unittest.TestCase):
         self.assertTrue('Pet Demo REST API Service' in resp.data)
 
     def test_get_pet_list(self):
-        """ get a ist of Pets """
+        """ Get a ist of Pets """
         resp = self.app.get('/pets')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(len(resp.data) > 0)
 
     def test_get_pet(self):
         """ Get a single Pet """
-        resp = self.app.get('/pets/2')
+        # get the id of a pet
+        pet = Pet.find_by_name('fido')[0]
+        resp = self.app.get('/pets/{}'.format(pet.id),
+                            content_type='application/json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = json.loads(resp.data)
-        self.assertEqual(data['name'], 'kitty')
+        self.assertEqual(data['name'], pet.name)
 
     def test_get_pet_not_found(self):
-        """ get a Pet that doesn't exist """
+        """ Get a Pet that doesn't exist """
         resp = self.app.get('/pets/0')
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -105,28 +108,32 @@ class TestPetServer(unittest.TestCase):
 
     def test_update_pet(self):
         """ Update an existing Pet """
+        pet = Pet.find_by_name('kitty')[0]
         new_kitty = {'name': 'kitty', 'category': 'tabby', 'available': 'True'}
         data = json.dumps(new_kitty)
-        resp = self.app.put('/pets/2', data=data, content_type='application/json')
+        resp = self.app.put('/pets/{}'.format(pet.id), data=data, content_type='application/json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         new_json = json.loads(resp.data)
         self.assertEqual(new_json['category'], 'tabby')
 
     def test_update_pet_with_no_data(self):
         """ Update a Pet with no data passed """
-        resp = self.app.put('/pets/2', data=None, content_type='application/json')
+        pet = Pet.find_by_name('kitty')[0]
+        resp = self.app.put('/pets/{}'.format(pet.id), data=None, content_type='application/json')
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_update_pet_with_text_data(self):
         """ Update a Pet with text data """
-        resp = self.app.put('/pets/2', data="hello", content_type='text/plain')
+        pet = Pet.find_by_name('kitty')[0]
+        resp = self.app.put('/pets/{}'.format(pet.id), data="hello", content_type='text/plain')
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_update_pet_with_no_name(self):
         """ Update a Pet without a name """
+        pet = Pet.find_by_name('kitty')[0]
         new_pet = {'category': 'dog'}
         data = json.dumps(new_pet)
-        resp = self.app.put('/pets/2', data=data, content_type='application/json')
+        resp = self.app.put('/pets/{}'.format(pet.id), data=data, content_type='application/json')
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_update_pet_not_found(self):
@@ -138,10 +145,11 @@ class TestPetServer(unittest.TestCase):
 
     def test_delete_pet(self):
         """ Delete a Pet """
+        pet = Pet.find_by_name('fido')[0]
         # save the current number of pets for later comparrison
         pet_count = self.get_pet_count()
-        # delete a pet
-        resp = self.app.delete('/pets/2', content_type='application/json')
+        resp = self.app.delete('/pets/{}'.format(pet.id),
+                               content_type='application/json')
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(len(resp.data), 0)
         new_count = self.get_pet_count()
@@ -218,7 +226,6 @@ class TestPetServer(unittest.TestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = json.loads(resp.data)
         return len(data)
-
 
 ######################################################################
 #   M A I N

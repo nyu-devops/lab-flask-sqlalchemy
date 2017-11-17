@@ -2,6 +2,7 @@ Flask==0.12
 Flask-API==0.6.9
 Flask-SQLAlchemy==2.1
 SQLAlchemy==1.1.5
+PyMySQL==0.7.11
 # Testing
 pylint
 httpie==0.9.9

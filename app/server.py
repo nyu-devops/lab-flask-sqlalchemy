@@ -27,24 +27,12 @@ DELETE /pets/{id} - Deletes a single Pet with the specified id
 POST /pets/{id}/purchase - Action to purchase a Pet
 """
 
-import os
 import sys
 import logging
-from flask import Flask, jsonify, request, url_for, make_response, abort
+from flask import jsonify, request, url_for, make_response, abort
 from flask_api import status    # HTTP Status Codes
-from models import Pet, DataValidationError
-
-# Create Flask application
-app = Flask(__name__)
-# We'll just use SQLite here so we don't need an external database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db/development.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'please, tell nobody... Shhhh'
-app.config['LOGGING_LEVEL'] = logging.INFO
-
-# Pull options from environment
-DEBUG = (os.getenv('DEBUG', 'False') == 'True')
-PORT = os.getenv('PORT', '5000')
+from app.models import Pet, DataValidationError
+from app import app
 
 ######################################################################
 # Error Handlers
@@ -201,7 +189,7 @@ def delete_pets(pet_id):
 
 def init_db():
     """ Initialies the SQLAlchemy app """
-    Pet.init_db(app)
+    Pet.init_db()
 
 #@app.before_first_request
 def initialize_logging(log_level=logging.INFO):
@@ -223,15 +211,3 @@ def initialize_logging(log_level=logging.INFO):
         app.logger.addHandler(handler)
         app.logger.setLevel(log_level)
         app.logger.info('Logging handler established')
-
-
-######################################################################
-#   M A I N
-######################################################################
-if __name__ == "__main__":
-    print "************************************************************"
-    print "        P E T   R E S T   A P I   S E R V I C E "
-    print "************************************************************"
-    initialize_logging(app.config['LOGGING_LEVEL'])
-    init_db()
-    app.run(host='0.0.0.0', port=int(PORT), debug=DEBUG)

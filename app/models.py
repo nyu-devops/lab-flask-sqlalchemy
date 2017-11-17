@@ -17,11 +17,10 @@ Pet Model
 
 This model uses SQLAlchemy to persist itself
 """
+import os
+import json
 import logging
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
+from . import db
 
 ######################################################################
 # Custom Exceptions
@@ -34,7 +33,6 @@ class DataValidationError(ValueError):
 ######################################################################
 class Pet(db.Model):
     """A single pet"""
-    session = None  # database session
     logger = logging.getLogger(__name__)
 
     # Table Schema
@@ -43,17 +41,20 @@ class Pet(db.Model):
     category = db.Column(db.String(63))
     available = db.Column(db.Boolean())
 
+    def __repr__(self):
+        return '<Pet %r>' % (self.name)
+
     def save(self):
         """ Saves an existing Pet in the database """
         # if the id is None it hasn't been added to the database
         if not self.id:
-            Pet.session.add(self)
-        Pet.session.commit()
+            db.session.add(self)
+        db.session.commit()
 
     def delete(self):
         """ Deletes a Pet from the database """
-        Pet.session.delete(self)
-        Pet.session.commit()
+        db.session.delete(self)
+        db.session.commit()
 
     def serialize(self):
         """ serializes a Pet into a dictionary """
@@ -76,12 +77,9 @@ class Pet(db.Model):
         return self
 
     @staticmethod
-    def init_db(app):
+    def init_db():
         """ Initializes the database session """
-        Pet.logger.info('Initializing with app %s ...', app)
-        db.init_app(app)
-        app.app_context().push()
-        Pet.session = db.session
+        Pet.logger.info('Initializing database')
         db.create_all()  # make our sqlalchemy tables
 
     @staticmethod
@@ -119,64 +117,3 @@ class Pet(db.Model):
         """ Query that finds Pets by their availability """
         Pet.logger.info('Processing available query for %s ...', available)
         return Pet.query.filter(Pet.available == available)
-
-
-# VCAP_SERVICES = {
-#     "cleardb": [
-#         {
-#             "credentials":
-#             {
-#                 "jdbcUrl": "jdbc:mysql://us-cdbr-sl-dfw-01.cleardb.net/ibmx_ed7eeb7522f40eb?user=b233c70a6246c9&password=fadfaef3",
-#                 "uri": "mysql://b233c70a6246c9:fadfaef3@us-cdbr-sl-dfw-01.cleardb.net:3306/ibmx_ed7eeb7522f40eb?reconnect=true",
-#                 "name": "ibmx_ed7eeb7522f40eb",
-#                 "hostname": "us-cdbr-sl-dfw-01.cleardb.net",
-#                 "port": "3306",
-#                 "username": "b233c70a6246c9",
-#                 "password": "fadfaef3"
-#             }
-#         }
-#     ]
-# }
-
-    # @staticmethod
-    # def init_db():
-    #     """
-    #     Initialized MySQL database connection
-    #
-    #     This method will work in the following conditions:
-    #       1) In Bluemix with Redis bound through VCAP_SERVICES
-    #       2) With MySQL running on the local server as with Travis CI
-    #       3) With MySQL --link in a Docker container called 'mysql'
-    #
-    #     Exception:
-    #     ----------
-    #       DatabaseConnectionError - if connection fails
-    #     """
-    #     # Get the credentials from the Bluemix environment
-    #     if 'VCAP_SERVICES' in os.environ:
-    #         Pet.logger.info("Using VCAP_SERVICES...")
-    #         vcap_services = os.environ['VCAP_SERVICES']
-    #         services = json.loads(vcap_services)
-    #         creds = services['cleardb'][0]['credentials']
-    #         Pet.logger.info("Conecting to cleardb on host %s port %s",
-    #                         creds['hostname'], creds['port'])
-    #         jdbcUrl =    "jdbcUrl": "jdbc:mysql://us-cdbr-sl-dfw-01.cleardb.net/ibmx_ed7eeb7522f40eb?user=b233c70a6246c9&password=fadfaef3",
-    #         uri =     "uri": "mysql://b233c70a6246c9:fadfaef3@us-cdbr-sl-dfw-01.cleardb.net:3306/ibmx_ed7eeb7522f40eb?reconnect=true",
-    #         name =    "name": "ibmx_ed7eeb7522f40eb",
-    #         hostname =    "hostname": "us-cdbr-sl-dfw-01.cleardb.net",
-    #         port =    "port": "3306",
-    #         username=     "username": "b233c70a6246c9",
-    #             "password": "fadfaef3"
-    #
-    #
-    #         Pet.connect_to_redis(creds['hostname'], creds['port'], creds['password'])
-    #     else:
-    #         Pet.logger.info("VCAP_SERVICES not found, checking localhost for Redis")
-    #         Pet.connect_to_redis('127.0.0.1', 6379, None)
-    #         if not Pet.redis:
-    #             Pet.logger.info("No Redis on localhost, looking for redis host")
-    #             Pet.connect_to_redis('redis', 6379, None)
-    #     if not Pet.redis:
-    #         # if you end up here, redis instance is down.
-    #         Pet.logger.fatal('*** FATAL ERROR: Could not connect to the Redis Service')
-    #         raise DatabaseConnectionError('Could not connect to the Redis Service')
