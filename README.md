@@ -30,6 +30,17 @@ Then all you have to do is clone this repo and invoke vagrant:
 
 The `Vagrantfile` uses Docker to bring up a container running **MariaDB** so that you can test with an actual MySQL database indie of the virtual machine.
 
+## Create the database
+
+Becasue this repo uses MySQL you will need to create the database before using it. This is automatcially taken care of for you in the `Vagrantfile` but if you want to create them manually the command is:
+
+```
+cd /vagrant
+db_create.py development
+db_create.py test
+```
+This will create both the `developement` and `test` databases.
+
 You can now run `nosetests` to run the tests.
 
 ## Manually running the Tests
@@ -45,6 +56,10 @@ The Code Coverage tool runs with `nosetests` so to see how well your test cases 
     $ coverage report -m
 
 This is particularly useful because it reports the line numbers for the code that is not covered so that you can write more test cases.
+
+To run the service use (Press Ctrl+C to exit):
+
+    $ python run.py
 
 When you are done, you can exit and shut down the vm with:
 
