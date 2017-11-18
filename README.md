@@ -61,6 +61,7 @@ If the VM is no longer needed you can remove it with:
     * db_create.py -- used to create the database
     * app/server.py -- the main Service using Python Flask
     * app/models.py -- the database models
+    * app/vcap_services.py -- Cloud Foundry VCAP_SERVICES support
     * tests/test_server.py -- test cases using unittest
     * tests/test_pets.py -- test cases using just the Pet model
 
