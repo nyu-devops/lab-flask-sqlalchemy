@@ -1,9 +1,9 @@
 # Local environment
-.env
 .DS_Store
+Thumbs.db
 
-# Virtual Environment files
-venv/
+# Text reports
+unittests.xml
 
 # Vagrant
 .vagrant
