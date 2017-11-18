@@ -20,9 +20,13 @@ nosetests -v --with-spec --spec-color
 coverage report -m
 """
 
+import os
 import unittest
 from app import app, db
 from app.models import Pet, DataValidationError
+
+# DATABASE_URI = 'mysql+pymysql://root:passw0rd@localhost:3306/test'
+DATABASE_URI = os.getenv('DATABASE_URI', None)
 
 ######################################################################
 #  T E S T   C A S E S
@@ -34,7 +38,8 @@ class TestPets(unittest.TestCase):
     def setUpClass(cls):
         app.debug = False
         # Set up the test database
-        #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db/test.db'
+        if DATABASE_URI:
+            app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 
     @classmethod
     def tearDownClass(cls):

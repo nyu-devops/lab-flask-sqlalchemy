@@ -20,12 +20,16 @@ nosetests -v --with-spec --spec-color
 flake8 server.py --count --max-line-length=127 --statistics --exit-zero
 """
 
+import os
 import unittest
 import logging
 import json
 from flask_api import status    # HTTP Status Codes
 from app.models import Pet
 from app import server, db
+
+#DATABASE_URI = 'mysql+pymysql://root:passw0rd@localhost:3306/test'
+DATABASE_URI = os.getenv('DATABASE_URI', None)
 
 ######################################################################
 #  T E S T   C A S E S
@@ -38,7 +42,8 @@ class TestPetServer(unittest.TestCase):
         server.app.debug = False
         server.initialize_logging(logging.INFO)
         # Set up the test database
-        #server.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db/test.db'
+        if DATABASE_URI:
+            server.app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 
     @classmethod
     def tearDownClass(cls):

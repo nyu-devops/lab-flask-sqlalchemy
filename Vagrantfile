@@ -16,12 +16,15 @@ Vagrant.configure(2) do |config|
 
       # Windows users need to change the permissions explicitly so that Windows doesn't
       # set the execute bit on all of your files which messes with GitHub users on Mac and Linux
-      tdd.vm.synced_folder "./", "/vagrant", owner: "ubuntu", mount_options: ["dmode=755,fmode=644"]
+      #tdd.vm.synced_folder "./", "/vagrant", owner: "ubuntu", mount_options: ["dmode=755,fmode=644"]
 
       tdd.vm.provider "virtualbox" do |vb|
         # Customize the amount of memory on the VM:
         vb.memory = "512"
         vb.cpus = 1
+        # Fixes some DNS issues on some networks
+        vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+        vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
       end
   end
 
@@ -33,6 +36,11 @@ Vagrant.configure(2) do |config|
   # Copy your ssh keys for github so that your git credentials work
   if File.exists?(File.expand_path("~/.ssh/id_rsa"))
     config.vm.provision "file", source: "~/.ssh/id_rsa", destination: "~/.ssh/id_rsa"
+  end
+
+  # Copy your .vimrc file so that your VI editor looks right
+  if File.exists?(File.expand_path("~/.vimrc"))
+    config.vm.provision "file", source: "~/.vimrc", destination: "~/.vimrc"
   end
 
   # Enable provisioning with a shell script. Additional provisioners such as
@@ -47,7 +55,7 @@ Vagrant.configure(2) do |config|
     cd /vagrant
     sudo pip install -r requirements.txt
     # Make vi look nice
-    sudo -H -u ubuntu echo "colorscheme desert" > ~/.vimrc
+    # sudo -H -u ubuntu echo "colorscheme desert" > ~/.vimrc
   SHELL
 
   ######################################################################

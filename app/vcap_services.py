@@ -4,12 +4,11 @@ VCAP Services module
 This module initializes the database connection String
 from VCAP_SERVICES in Bluemix if Found
 """
-
 import os
 import json
 import logging
 
-def get_database_url():
+def get_database_uri():
     """
     Initialized MySQL database connection
 
@@ -31,13 +30,13 @@ def get_database_url():
         port = creds["port"]
         name = creds["name"]
     else:
-        logging.info("Using defaults...")
+        logging.info("Using localhost database...")
         username = 'root'
         password = 'passw0rd'
         hostname = 'localhost'
         port = '3306'
         name = 'development'
 
-    logging.info("Conecting to cleardb on host %s port %s", hostname, port)
+    logging.info("Conecting to database on host %s port %s", hostname, port)
     connect_string = 'mysql+pymysql://{}:{}@{}:{}/{}'
     return connect_string.format(username, password, hostname, port, name)
