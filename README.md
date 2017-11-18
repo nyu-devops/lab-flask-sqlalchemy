@@ -38,20 +38,13 @@ Run the tests using `nose`
 
     $ nosetests
 
-**Nose** is configured to automatically include the flags `--with-spec --spec-color` so that red-green-refactor is meaningful. If you are in a command shell that supports colors, passing tests will be green while failing tests will be red.
+**Nose** is configured to automatically include the flags `--with-spec --spec-color` so that red-green-refactor is meaningful. If you are in a command shell that supports colors, passing tests will be green while failing tests will be red. It also has `--with-coverage` specified so that code coverage is included in the tests.
 
-Run Code Coverage to see how well your test cases exercise your code:
+The Code Coverage tool runs with `nosetests` so to see how well your test cases exercise your code just run the report:
 
-    $ coverage run test_server.py
-    $ coverage report -m --include=server.py
+    $ coverage report -m
 
 This is particularly useful because it reports the line numbers for the code that is not covered so that you can write more test cases.
-
-You can even run `nosetests` with `coverage`
-
-    $ nosetests --with-coverage --cover-package=server
-
-Try and get as close to 100% coverage as you can.
 
 When you are done, you can exit and shut down the vm with:
 
@@ -65,8 +58,10 @@ If the VM is no longer needed you can remove it with:
 
 ## What's featured in the project?
 
-    * server.py -- the main Service using Python Flask
-    * test_server.py -- test cases using unittest
-    * test_pets.py -- test cases using just the Pet model
+    * db_create.py -- used to create the database
+    * app/server.py -- the main Service using Python Flask
+    * app/models.py -- the database models
+    * tests/test_server.py -- test cases using unittest
+    * tests/test_pets.py -- test cases using just the Pet model
 
 This repo is part of the DevOps course CSCI-GA.3033-013/014 at NYU.
