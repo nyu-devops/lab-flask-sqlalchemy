@@ -9,10 +9,8 @@ NYU DevOps lab on using SQLAlchemy with Flask
 
 This lab shows how to use SQLAlchemy with Flask so that you don't need to worry about making raw database queries. SQLAlchemy is an Object Relational Mapper (ORM) that will allow you to work with classes instead of database records. This example extends our Pet Store to use a relational database for it's persistence.
 
-This lab also demonstrates how to create a simple RESTful service using Python Flask and SQLite.
+This lab also demonstrates how to create a simple RESTful service using Python Flask and SQLite or MySQL.
 The resource model is persistences using SQLAlchemy to keep the application simple. It's purpose is to show the correct API and return codes that should be used for a REST API.
-
-**Note:** All of the code is in one file `server.py` to make it easier to teach. In a "real" application you would separate out the code into several modules.
 
 ## Prerequisite Installation using Vagrant
 
@@ -29,6 +27,8 @@ Then all you have to do is clone this repo and invoke vagrant:
     vagrant up
     vagrant ssh
     cd /vagrant
+
+The `Vagrantfile` uses Docker to bring up a container running **MariaDB** so that you can test with an actual MySQL database indie of the virtual machine.
 
 You can now run `nosetests` to run the tests.
 
