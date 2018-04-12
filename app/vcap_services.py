@@ -27,9 +27,9 @@ def get_database_uri():
     Initialized MySQL database connection
 
     This method will work in the following conditions:
-      1) In Bluemix with Redis bound through VCAP_SERVICES
+      1) In Bluemix with MySQL bound through VCAP_SERVICES
       2) With MySQL running on the local server as with Travis CI
-      3) With MySQL --link in a Docker container called 'mysql'
+      3) With MySQL --link in a Docker container called 'mariadb'
     """
     # Get the credentials from the Bluemix environment
     if 'VCAP_SERVICES' in os.environ:

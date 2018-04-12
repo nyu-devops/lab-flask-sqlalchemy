@@ -90,7 +90,7 @@ class TestPetServer(unittest.TestCase):
 
     def test_create_pet(self):
         """ Create a new Pet """
-        # save the current number of pets for later comparrison
+        # save the current number of pets for later comparison
         pet_count = self.get_pet_count()
         # add a new pet
         new_pet = {'name': 'sammy', 'category': 'snake', 'available': 'True'}

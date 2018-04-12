@@ -15,7 +15,7 @@ Vagrant.configure(2) do |config|
 
   # Windows users need to change the permissions explicitly so that Windows doesn't
   # set the execute bit on all of your files which messes with GitHub users on Mac and Linux
-  #config.vm.synced_folder "./", "/vagrant", owner: "ubuntu", mount_options: ["dmode=755,fmode=644"]
+  # config.vm.synced_folder "./", "/vagrant", owner: "vagrant", mount_options: ["dmode=775,fmode=664"]
 
   config.vm.provider "virtualbox" do |vb|
     # Customize the amount of memory on the VM:
@@ -53,7 +53,8 @@ Vagrant.configure(2) do |config|
     cd /vagrant
     sudo pip install -r requirements.txt
     # Make vi look nice
-    # sudo -H -u ubuntu echo "colorscheme desert" > ~/.vimrc
+    # sudo -H -u vagrant echo "colorscheme desert" > ~/.vimrc
+    cd
   SHELL
 
   ######################################################################
@@ -62,7 +63,7 @@ Vagrant.configure(2) do |config|
   config.vm.provision "shell", inline: <<-SHELL
     # Prepare MySQL data share
     sudo mkdir -p /var/lib/mysql
-    sudo chown ubuntu:ubuntu /var/lib/mysql
+    sudo chown vagrant:vagrant /var/lib/mysql
   SHELL
   # Add MySQL docker container
   config.vm.provision "docker" do |d|
@@ -77,8 +78,9 @@ Vagrant.configure(2) do |config|
     echo "Waiting 20 seconds for mariadb to start..."
     sleep 20
     cd /vagrant
-    python db_create.py development
-    python db_create.py test
+    python manage.py development
+    python manage.py test
+    cd
   SHELL
 
 end
