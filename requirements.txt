@@ -1,7 +1,7 @@
-Flask==0.12
-Flask-API==0.6.9
-Flask-SQLAlchemy==2.1
-SQLAlchemy==1.1.5
+Flask==1.0.2
+Flask-API==1.0
+Flask-SQLAlchemy==2.3.2
+SQLAlchemy==1.2.14
 ibm-db==2.0.9
 ibm-db-sa==0.3.2
 #PyMySQL==0.7.11
