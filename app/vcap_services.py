@@ -24,33 +24,27 @@ import logging
 
 def get_database_uri():
     """
-    Initialized MySQL database connection
+    Initialized DB2 database connection
 
     This method will work in the following conditions:
-      1) In Bluemix with MySQL bound through VCAP_SERVICES
-      2) With MySQL running on the local server as with Travis CI
-      3) With MySQL --link in a Docker container called 'mariadb'
+      1) With DATABASE_URI as an environment variable
+      2) In Bluemix with DB2 bound through VCAP_SERVICES
+      3) With PostgreSQL running on the local server as with Travis CI
     """
-    # Get the credentials from the Bluemix environment
-    if 'VCAP_SERVICES' in os.environ:
+    database_uri = None
+    if 'DATABASE_URI' in os.environ:
+        # Get the credentials from DATABASE_URI
+        logging.info("Using DATABASE_URI...")
+        database_uri = os.environ['DATABASE_URI']
+    elif 'VCAP_SERVICES' in os.environ:
+        # Get the credentials from the Bluemix environment
         logging.info("Using VCAP_SERVICES...")
         vcap_services = os.environ['VCAP_SERVICES']
         services = json.loads(vcap_services)
-        creds = services['cleardb'][0]['credentials']
-        #uri = creds["uri"]
-        username = creds["username"]
-        password = creds["password"]
-        hostname = creds["hostname"]
-        port = creds["port"]
-        name = creds["name"]
+        creds = services['dashDB For Transactions'][0]['credentials']
+        database_uri = creds["uri"]
     else:
         logging.info("Using localhost database...")
-        username = 'root'
-        password = 'passw0rd'
-        hostname = 'localhost'
-        port = '3306'
-        name = 'development'
+        database_uri = "postgres://postgres:postgres@localhost:5432/postgres"
 
-    logging.info("Conecting to database on host %s port %s", hostname, port)
-    connect_string = 'mysql+pymysql://{}:{}@{}:{}/{}'
-    return connect_string.format(username, password, hostname, port, name)
+    return database_uri

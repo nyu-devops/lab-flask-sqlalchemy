@@ -6,12 +6,12 @@ applications:
   host: nyu-lab-sqlalchemy
   domain: mybluemix.net
   path: .
-  instances: 2
+  instances: 1
   memory: 64M
   disk_quota: 512M
   command: python run.py
   buildpack: python_buildpack
   services:
-  - ClearDB
+  - Db2
   env:
     DEBUG: False

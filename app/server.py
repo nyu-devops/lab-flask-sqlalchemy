@@ -45,35 +45,35 @@ def request_validation_error(error):
 @app.errorhandler(400)
 def bad_request(error):
     """ Handles bad reuests with 400_BAD_REQUEST """
-    message = error.message or str(error)
+    message = str(error)
     app.logger.info(message)
     return jsonify(status=400, error='Bad Request', message=message), 400
 
 @app.errorhandler(404)
 def not_found(error):
     """ Handles resources not found with 404_NOT_FOUND """
-    message = error.message or str(error)
+    message = str(error)
     app.logger.info(message)
     return jsonify(status=404, error='Not Found', message=message), 404
 
 @app.errorhandler(405)
 def method_not_supported(error):
     """ Handles unsuppoted HTTP methods with 405_METHOD_NOT_SUPPORTED """
-    message = error.message or str(error)
+    message = str(error)
     app.logger.info(message)
     return jsonify(status=405, error='Method not Allowed', message=message), 405
 
 @app.errorhandler(415)
 def mediatype_not_supported(error):
     """ Handles unsuppoted media requests with 415_UNSUPPORTED_MEDIA_TYPE """
-    message = error.message or str(error)
+    message = str(error)
     app.logger.info(message)
     return jsonify(status=415, error='Unsupported media type', message=message), 415
 
 @app.errorhandler(500)
 def internal_server_error(error):
     """ Handles unexpected server error with 500_SERVER_ERROR """
-    message = error.message or str(error)
+    message = str(error)
     app.logger.info(message)
     return jsonify(status=500, error='Internal Server Error', message=message), 500
 
@@ -103,6 +103,15 @@ def list_pets():
         pets = Pet.find_by_availability(available.lower() in ['true', '1', 't'])
     else:
         pets = Pet.all()
+
+    results = [pet.serialize() for pet in pets]
+    return make_response(jsonify(results), status.HTTP_200_OK)
+
+@app.route('/pets/sorted', methods=['GET'])
+def list_sorted():
+    """ Returns all of the Pets """
+    pets = []
+    pets = Pet.all_sorted()
 
     results = [pet.serialize() for pet in pets]
     return make_response(jsonify(results), status.HTTP_200_OK)
@@ -195,7 +204,7 @@ def init_db():
 def initialize_logging(log_level=logging.INFO):
     """ Initialized the default logging to STDOUT """
     if not app.debug:
-        print 'Setting up logging...'
+        print('Setting up logging...')
         # Set up default logging for submodules to use STDOUT
         # datefmt='%m/%d/%Y %I:%M:%S %p'
         fmt = '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'

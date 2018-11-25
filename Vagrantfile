@@ -46,39 +46,44 @@ Vagrant.configure(2) do |config|
   # documentation for more information about their specific syntax and use.
   config.vm.provision "shell", inline: <<-SHELL
     apt-get update
+    # Python 2
     apt-get install -y git python-pip python-dev build-essential
-    pip install --upgrade pip
+    # Python 3
+    # apt-get install -y git tree python3-dev python3-pip python3-venv
     apt-get -y autoremove
     # Install app dependencies
     cd /vagrant
     sudo pip install -r requirements.txt
-    # Make vi look nice
-    # sudo -H -u vagrant echo "colorscheme desert" > ~/.vimrc
     cd
   SHELL
 
+  # ######################################################################
+  # # Add MySQL docker container
+  # ######################################################################
+  # config.vm.provision "docker" do |d|
+  #   d.pull_images "mariadb"
+  #   d.run "mariadb",
+  #     args: "--restart=always -d --name mariadb -p 3306:3306 -v mysql_data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=passw0rd"
+  # end
+
   ######################################################################
-  # Add MySQL docker container
+  # Add PostgreSQL docker container
   ######################################################################
-  config.vm.provision "shell", inline: <<-SHELL
-    # Prepare MySQL data share
-    sudo mkdir -p /var/lib/mysql
-    sudo chown vagrant:vagrant /var/lib/mysql
-  SHELL
-  # Add MySQL docker container
   config.vm.provision "docker" do |d|
-    d.pull_images "mariadb"
-    d.run "mariadb",
-      args: "--restart=always -d --name mariadb -p 3306:3306 -v /var/lib/mysql:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=passw0rd"
+    d.pull_images "postgres"
+    d.run "postgres",
+       args: "-d --name postgres -p 5432:5432 -v postgresql_data:/var/lib/postgresql/data"
   end
 
   # Create the database after Docker is running
   config.vm.provision "shell", inline: <<-SHELL
     # Wait for mariadb to come up
-    echo "Waiting 20 seconds for mariadb to start..."
+    echo "Waiting 20 seconds for PostgreSQL to start..."
     sleep 20
     cd /vagrant
+    docker exec postgres psql -U postgres -c "CREATE DATABASE development;"
     python manage.py development
+    docker exec postgres psql -U postgres -c "CREATE DATABASE test;"
     python manage.py test
     cd
   SHELL

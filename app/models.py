@@ -89,6 +89,12 @@ class Pet(db.Model):
         return Pet.query.all()
 
     @staticmethod
+    def all_sorted():
+        """ Return all of the Pets in the database """
+        Pet.logger.info('Processing all Pets')
+        return Pet.query.order_by(Pet.name.desc()).all()
+
+    @staticmethod
     def find(pet_id):
         """ Find a Pet by it's id """
         Pet.logger.info('Processing lookup for id %s ...', pet_id)

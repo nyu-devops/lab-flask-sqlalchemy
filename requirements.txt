@@ -2,10 +2,13 @@ Flask==0.12
 Flask-API==0.6.9
 Flask-SQLAlchemy==2.1
 SQLAlchemy==1.1.5
-PyMySQL==0.7.11
+ibm-db==2.0.9
+ibm-db-sa==0.3.2
+#PyMySQL==0.7.11
+psycopg2-binary==2.7.4
 # Testing
 honcho==1.0.1
-pylint==1.7.4
+pylint==1.9.3
 httpie==0.9.9
 nose==1.3.7
 pinocchio==0.4.2
