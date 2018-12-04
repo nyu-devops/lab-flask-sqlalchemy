@@ -93,7 +93,7 @@ class TestPetServer(unittest.TestCase):
         # save the current number of pets for later comparison
         pet_count = self.get_pet_count()
         # add a new pet
-        new_pet = {'name': 'sammy', 'category': 'snake', 'available': 'True'}
+        new_pet = {'name': 'sammy', 'category': 'snake', 'available': True}
         data = json.dumps(new_pet)
         resp = self.app.post('/pets', data=data, content_type='application/json')
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
@@ -114,7 +114,7 @@ class TestPetServer(unittest.TestCase):
     def test_update_pet(self):
         """ Update an existing Pet """
         pet = Pet.find_by_name('kitty')[0]
-        new_kitty = {'name': 'kitty', 'category': 'tabby', 'available': 'True'}
+        new_kitty = {'name': 'kitty', 'category': 'tabby', 'available': True}
         data = json.dumps(new_kitty)
         resp = self.app.put('/pets/{}'.format(pet.id), data=data, content_type='application/json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
@@ -143,7 +143,7 @@ class TestPetServer(unittest.TestCase):
 
     def test_update_pet_not_found(self):
         """ Update a Pet that doesn't exist """
-        new_kitty = {'name': 'timothy', 'category': 'mouse', 'available': 'True'}
+        new_kitty = {'name': 'timothy', 'category': 'mouse', 'available': True}
         data = json.dumps(new_kitty)
         resp = self.app.put('/pets/0', data=data, content_type='application/json')
         self.assertEquals(resp.status_code, status.HTTP_404_NOT_FOUND)
@@ -167,14 +167,14 @@ class TestPetServer(unittest.TestCase):
 
     def test_create_pet_with_no_name(self):
         """ Try and create with no name """
-        new_pet = {'category': 'dog', 'available': 'True'}
+        new_pet = {'category': 'dog', 'available': True}
         data = json.dumps(new_pet)
         resp = self.app.post('/pets', data=data, content_type='application/json')
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_pet_no_content_type(self):
         """ Create without a Context-Type """
-        new_pet = {'name': 'fifi', 'category': 'dog', 'available': 'True'}
+        new_pet = {'name': 'fifi', 'category': 'dog', 'available': True}
         data = json.dumps(new_pet)
         resp = self.app.post('/pets', data=data)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
