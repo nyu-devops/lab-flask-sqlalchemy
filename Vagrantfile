@@ -60,6 +60,7 @@ Vagrant.configure(2) do |config|
   # ######################################################################
   # # Add MySQL docker container
   # ######################################################################
+  # # docker run -d --name mariadb -p 3306:3306 -v mysql_data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=passw0rd mariadb
   # config.vm.provision "docker" do |d|
   #   d.pull_images "mariadb"
   #   d.run "mariadb",
@@ -69,6 +70,7 @@ Vagrant.configure(2) do |config|
   ######################################################################
   # Add PostgreSQL docker container
   ######################################################################
+  # docker run -d --name postgres -p 5432:5432 -v postgresql_data:/var/lib/postgresql/data postgres
   config.vm.provision "docker" do |d|
     d.pull_images "postgres"
     d.run "postgres",

@@ -30,8 +30,9 @@ import ibm_db_sa
 
 app = Flask(__name__)
 # Load the confguration
-app.config.from_object('config')
-#print('Database URI {}'.format(app.config['SQLALCHEMY_DATABASE_URI']))
+with app.app_context():
+    app.config.from_object('config')
+    app.logger.debug('Database URI {}'.format(app.config['SQLALCHEMY_DATABASE_URI']))
 
 # Initialize SQLAlchemy
 db = SQLAlchemy(app)
