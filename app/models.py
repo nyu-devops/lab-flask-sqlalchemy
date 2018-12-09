@@ -28,6 +28,84 @@ from . import db
 class DataValidationError(ValueError):
     pass
 
+class Category(db.Model):
+    """ Category of Pet """
+    logger = logging.getLogger(__name__)
+
+    # Table Schema
+    #__tablename__ = 'category'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64))
+    members = db.relationship("Pet")
+
+    def __repr__(self):
+        return '<Category %r>' % (self.name)
+
+    def save(self):
+        """ Saves an existing Category in the database """
+        # if the id is None it hasn't been added to the database
+        if not self.id:
+            db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        """ Deletes a Category from the database """
+        db.session.delete(self)
+        db.session.commit()
+
+    def serialize(self):
+        """ serializes a Category into a dictionary """
+        return {"id": self.id,
+                "name": self.name}
+
+    def deserialize(self, data):
+        """ deserializes a Category my marshalling the data """
+        try:
+            self.name = data['name']
+        except KeyError as error:
+            raise DataValidationError('Invalid Category: missing ' + error.args[0])
+        except TypeError as error:
+            raise DataValidationError('Invalid Category: body of request contained' \
+                                      'bad or no data')
+        return self
+
+    @classmethod
+    def init_db(cls):
+        """ Initializes the database session """
+        cls.logger.info('Category: Initializing database')
+        db.create_all()  # make our sqlalchemy tables
+
+    @classmethod
+    def delete_all(cls):
+        cls.query.delete()
+        db.session.commit()
+
+    @classmethod
+    def all(cls):
+        """ Return all of the Categories in the database """
+        cls.logger.info('Processing all Categories')
+        return cls.query.all()
+
+    @classmethod
+    def find(cls, category_id):
+        """ Find a Category by it's id """
+        cls.logger.info('Processing category lookup for id %s ...', category_id)
+        return cls.query.get(category_id)
+
+    @classmethod
+    def find_or_404(cls, category_id):
+        """ Find a Category by it's id """
+        cls.logger.info('Processing category lookup or 404 for id %s ...', category_id)
+        return cls.query.get_or_404(category_id)
+
+    @classmethod
+    def find_by_name(cls, name):
+        """ Query that finds Categories by their name """
+        cls.logger.info('Processing category name query for %s ...', name)
+        return cls.query.filter(Category.name == name)
+
+
+
 ######################################################################
 # Pet Model for database
 ######################################################################
@@ -38,7 +116,7 @@ class Pet(db.Model):
     # Table Schema
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(63))
-    category = db.Column(db.String(63))
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
     available = db.Column(db.Boolean())
 
     def __repr__(self):
@@ -60,14 +138,14 @@ class Pet(db.Model):
         """ serializes a Pet into a dictionary """
         return {"id": self.id,
                 "name": self.name,
-                "category": self.category,
+                "category_id": self.category_id,
                 "available": self.available}
 
     def deserialize(self, data):
         """ deserializes a Pet my marshalling the data """
         try:
             self.name = data['name']
-            self.category = data['category']
+            self.category_id = data['category_id']
             self.available = data['available']
         except KeyError as error:
             raise DataValidationError('Invalid pet: missing ' + error.args[0])
@@ -76,50 +154,55 @@ class Pet(db.Model):
                                       'bad or no data')
         return self
 
-    @staticmethod
-    def init_db():
+    @classmethod
+    def init_db(cls):
         """ Initializes the database session """
-        Pet.logger.info('Initializing database')
+        cls.logger.info('Pet: Initializing database')
         db.create_all()  # make our sqlalchemy tables
 
-    @staticmethod
-    def all():
+    @classmethod
+    def delete_all(cls):
+        cls.query.delete()
+        db.session.commit()
+
+    @classmethod
+    def all(cls):
         """ Return all of the Pets in the database """
-        Pet.logger.info('Processing all Pets')
+        cls.logger.info('Processing all Pets')
         return Pet.query.all()
 
-    @staticmethod
-    def all_sorted():
+    @classmethod
+    def all_sorted(cls):
         """ Return all of the Pets in the database """
-        Pet.logger.info('Processing all Pets')
+        cls.logger.info('Processing all Pets')
         return Pet.query.order_by(Pet.name.desc()).all()
 
-    @staticmethod
-    def find(pet_id):
+    @classmethod
+    def find(cls, pet_id):
         """ Find a Pet by it's id """
-        Pet.logger.info('Processing lookup for id %s ...', pet_id)
+        cls.logger.info('Processing lookup for id %s ...', pet_id)
         return Pet.query.get(pet_id)
 
-    @staticmethod
-    def find_or_404(pet_id):
+    @classmethod
+    def find_or_404(cls, pet_id):
         """ Find a Pet by it's id """
-        Pet.logger.info('Processing lookup or 404 for id %s ...', pet_id)
+        cls.logger.info('Processing lookup or 404 for id %s ...', pet_id)
         return Pet.query.get_or_404(pet_id)
 
-    @staticmethod
-    def find_by_name(name):
+    @classmethod
+    def find_by_name(cls, name):
         """ Query that finds Pets by their name """
-        Pet.logger.info('Processing name query for %s ...', name)
+        cls.logger.info('Processing name query for %s ...', name)
         return Pet.query.filter(Pet.name == name)
 
-    @staticmethod
-    def find_by_category(category):
+    @classmethod
+    def find_by_category(cls, category):
         """ Query that finds Pets by their category """
-        Pet.logger.info('Processing category query for %s ...', category)
-        return Pet.query.filter(Pet.category == category)
+        cls.logger.info('Processing category query for %s ...', category)
+        return Pet.query.filter(Pet.category_id == category)
 
-    @staticmethod
-    def find_by_availability(available=True):
+    @classmethod
+    def find_by_availability(cls, available=True):
         """ Query that finds Pets by their availability """
-        Pet.logger.info('Processing available query for %s ...', available)
+        cls.logger.info('Processing available query for %s ...', available)
         return Pet.query.filter(Pet.available == available)

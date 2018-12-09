@@ -25,7 +25,7 @@ import unittest
 import logging
 import json
 from flask_api import status    # HTTP Status Codes
-from app.models import Pet
+from app.models import Pet, Category
 from app import server, db
 
 #DATABASE_URI = 'mysql+pymysql://root:passw0rd@localhost:3306/test'
@@ -44,22 +44,31 @@ class TestPetServer(unittest.TestCase):
         # Set up the test database
         if DATABASE_URI:
             server.app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
+        db.drop_all()         # clean before all tests
+        server.init_db()
+        # db.create_all()     # make our sqlalchemy tables
 
     @classmethod
     def tearDownClass(cls):
-        pass
+        db.drop_all()       # clean up after the last test
+        db.session.remove() # disconnect from database
 
     def setUp(self):
-        server.init_db()
-        db.drop_all()    # clean up the last tests
-        db.create_all()  # create new tables
-        Pet(name='fido', category='dog', available=True).save()
-        Pet(name='kitty', category='cat', available=True).save()
+        # Create some categories for the tests
+        server.truncate_db()
+        # Create some categories for testing
+        dog = Category(name="Dog")
+        dog.save()
+        self.dog_id = dog.id
+        cat = Category(name="Cat")
+        cat.save()
+        self.cat_id = cat.id
+        Pet(name='fido', category_id=self.dog_id, available=True).save()
+        Pet(name='kitty', category_id=self.cat_id, available=True).save()
         self.app = server.app.test_client()
 
     def tearDown(self):
-        db.session.remove()
-        db.drop_all()
+        pass
 
     def test_index(self):
         """ Get the home page """
@@ -93,7 +102,9 @@ class TestPetServer(unittest.TestCase):
         # save the current number of pets for later comparison
         pet_count = self.get_pet_count()
         # add a new pet
-        new_pet = {'name': 'sammy', 'category': 'snake', 'available': True}
+        snake = Category(name="Snake")
+        snake.save()
+        new_pet = {'name': 'sammy', 'category_id': snake.id, 'available': True}
         data = json.dumps(new_pet)
         resp = self.app.post('/pets', data=data, content_type='application/json')
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
@@ -113,13 +124,19 @@ class TestPetServer(unittest.TestCase):
 
     def test_update_pet(self):
         """ Update an existing Pet """
-        pet = Pet.find_by_name('kitty')[0]
-        new_kitty = {'name': 'kitty', 'category': 'tabby', 'available': True}
-        data = json.dumps(new_kitty)
-        resp = self.app.put('/pets/{}'.format(pet.id), data=data, content_type='application/json')
+        resp = self.app.get('/pets', query_string='name=kitty')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = json.loads(resp.data)
+        kitty = data[0]
+        self.assertEqual(kitty['name'], 'kitty')
+        self.assertEqual(kitty['category_id'], self.cat_id)
+        kitty['category_id'] = self.dog_id
+        data = json.dumps(kitty)
+        resp = self.app.put('/pets/{}'.format(kitty['id']), data=data, content_type='application/json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         new_json = json.loads(resp.data)
-        self.assertEqual(new_json['category'], 'tabby')
+        self.assertEqual(new_json['name'], 'kitty')
+        self.assertEqual(new_json['category_id'], self.dog_id)
 
     def test_update_pet_with_no_data(self):
         """ Update a Pet with no data passed """
@@ -136,14 +153,14 @@ class TestPetServer(unittest.TestCase):
     def test_update_pet_with_no_name(self):
         """ Update a Pet without a name """
         pet = Pet.find_by_name('kitty')[0]
-        new_pet = {'category': 'dog'}
+        new_pet = {'category_id': self.dog_id}
         data = json.dumps(new_pet)
         resp = self.app.put('/pets/{}'.format(pet.id), data=data, content_type='application/json')
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_update_pet_not_found(self):
         """ Update a Pet that doesn't exist """
-        new_kitty = {'name': 'timothy', 'category': 'mouse', 'available': True}
+        new_kitty = {'name': 'timothy', 'category_id': self.cat_id, 'available': True}
         data = json.dumps(new_kitty)
         resp = self.app.put('/pets/0', data=data, content_type='application/json')
         self.assertEquals(resp.status_code, status.HTTP_404_NOT_FOUND)
@@ -167,28 +184,28 @@ class TestPetServer(unittest.TestCase):
 
     def test_create_pet_with_no_name(self):
         """ Try and create with no name """
-        new_pet = {'category': 'dog', 'available': True}
+        new_pet = {'category_id': self.dog_id, 'available': True}
         data = json.dumps(new_pet)
         resp = self.app.post('/pets', data=data, content_type='application/json')
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_pet_no_content_type(self):
         """ Create without a Context-Type """
-        new_pet = {'name': 'fifi', 'category': 'dog', 'available': True}
+        new_pet = {'name': 'fifi', 'category_id': self.dog_id, 'available': True}
         data = json.dumps(new_pet)
         resp = self.app.post('/pets', data=data)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_query_pet_category(self):
         """ Query Pet by category """
-        resp = self.app.get('/pets', query_string='category=dog')
+        resp = self.app.get('/pets', query_string='category={}'.format(self.dog_id))
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertGreater(len(resp.data), 0)
         self.assertIn('fido', resp.data)
         self.assertNotIn('kitty', resp.data)
         data = json.loads(resp.data)
         query_item = data[0]
-        self.assertEqual(query_item['category'], 'dog')
+        self.assertEqual(query_item['category_id'], self.dog_id)
 
     def test_query_pet_name(self):
         """ Query Pet by name """
@@ -222,8 +239,15 @@ class TestPetServer(unittest.TestCase):
 
 
 ######################################################################
-# Utility functions
+# U T I L I T Y   F I X T U R E S
 ######################################################################
+    def truncate_tables(self, session):
+        """ Truncates all of the tables """
+        meta = db.metadata
+        for table in reversed(meta.sorted_tables):
+            print 'Clear table %s' % table
+            session.execute(table.delete())
+        session.commit()
 
     def get_pet_count(self):
         """ save the current number of pets """

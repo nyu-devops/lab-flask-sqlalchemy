@@ -31,7 +31,7 @@ import sys
 import logging
 from flask import jsonify, request, url_for, make_response, abort
 from flask_api import status    # HTTP Status Codes
-from app.models import Pet, DataValidationError
+from app.models import Pet, Category, DataValidationError
 from app import app
 
 ######################################################################
@@ -148,7 +148,7 @@ def create_pets():
         app.logger.info('Processing FORM data')
         data = {
             'name': request.form['name'],
-            'category': request.form['category'],
+            'category_id': request.form['category'],
             'available': request.form['available'].lower() in ['true', '1', 't']
         }
     else:
@@ -199,6 +199,11 @@ def delete_pets(pet_id):
 def init_db():
     """ Initialies the SQLAlchemy app """
     Pet.init_db()
+    Category.init_db()
+
+def truncate_db():
+    Pet.delete_all()
+    Category.delete_all()
 
 #@app.before_first_request
 def initialize_logging(log_level=logging.INFO):
