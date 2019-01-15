@@ -21,7 +21,7 @@ This module contains the microservice code for
 """
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-import ibm_db_sa
+import pymysql
 
 # These next lines are positional:
 # 1) We need to create the Flask app

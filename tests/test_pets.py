@@ -50,7 +50,7 @@ class TestPets(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        db.drop_all()       # clean up after the last test
+        #db.drop_all()       # clean up after the last test
         db.session.remove() # disconnect from database
 
     def setUp(self):
