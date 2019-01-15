@@ -35,7 +35,7 @@ class Category(db.Model):
     # Table Schema
     #__tablename__ = 'category'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64))
+    name = db.Column(db.String(64), nullable=False)
     members = db.relationship("Pet")
 
     def __repr__(self):
@@ -115,8 +115,8 @@ class Pet(db.Model):
 
     # Table Schema
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(63))
-    category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
+    name = db.Column(db.String(63), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     available = db.Column(db.Boolean())
 
     def __repr__(self):
