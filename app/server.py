@@ -91,6 +91,7 @@ def index():
 @app.route('/pets', methods=['GET'])
 def list_pets():
     """ Returns all of the Pets """
+    app.logger.info('Listing Pets...')
     pets = []
     category = request.args.get('category')
     name = request.args.get('name')
@@ -110,6 +111,7 @@ def list_pets():
 @app.route('/pets/sorted', methods=['GET'])
 def list_sorted():
     """ Returns all of the Pets """
+    app.logger.info('Get sorted Pets...')
     pets = []
     pets = Pet.all_sorted()
 
@@ -126,6 +128,7 @@ def get_pets(pet_id):
 
     This endpoint will return a Pet based on it's id
     """
+    app.logger.info('Retrieve a Pet with ID:(%s)...', pet_id)
     pet = Pet.find(pet_id)
     if not pet:
         abort(status.HTTP_404_NOT_FOUND, "Pet with id '{}' was not found.".format(pet_id))
@@ -142,6 +145,7 @@ def create_pets():
     This endpoint will create a Pet based the data in the body that is posted
     or data that is sent via an html form post.
     """
+    app.logger.info('Creating Pet...')
     data = {}
     # Check for form submission data
     if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
@@ -171,6 +175,7 @@ def update_pets(pet_id):
 
     This endpoint will update a Pet based the body that is posted
     """
+    app.logger.info('Updating a Pet with ID:(%s)...', pet_id)
     pet = Pet.find_or_404(pet_id)
     pet.deserialize(request.get_json())
     pet.id = pet_id
@@ -187,10 +192,109 @@ def delete_pets(pet_id):
 
     This endpoint will delete a Pet based the id specified in the path
     """
+    app.logger.info('Deleting a Pet with ID:(%s)...', pet_id)
     pet = Pet.find(pet_id)
     if pet:
         pet.delete()
     return make_response('', status.HTTP_204_NO_CONTENT)
+
+
+######################################################################
+######################################################################
+#  C A T E G O R Y   R O U T E S
+######################################################################
+######################################################################
+
+
+######################################################################
+# LIST ALL CATEGORIES
+######################################################################
+@app.route('/categories', methods=['GET'])
+def list_categories():
+    """ Returns all of the Categories """
+    app.logger.info('Listing Categories...')
+    categories = Category.all()
+    results = [category.serialize() for category in categories]
+    return make_response(jsonify(results), status.HTTP_200_OK)
+
+######################################################################
+# RETRIEVE A CATEGORY
+######################################################################
+@app.route('/categories/<int:category_id>', methods=['GET'])
+def get_categories(category_id):
+    """
+    Retrieve a single Category
+
+    This endpoint will return a Category based on it's id
+    """
+    app.logger.info('Retrieve a Category with ID:(%s)...', category_id)
+    category = Category.find(category_id)
+    if not category:
+        abort(status.HTTP_404_NOT_FOUND, "Category with id '{}' was not found.".format(category_id))
+    return make_response(jsonify(category.serialize()), status.HTTP_200_OK)
+
+######################################################################
+# ADD A NEW CATEGORY
+######################################################################
+@app.route('/categories', methods=['POST'])
+def create_categories():
+    """
+    Creates a Category
+
+    This endpoint will create a Category based the data in the body that is posted
+    or data that is sent via an html form post.
+    """
+    app.logger.info('Creating Category...')
+    data = {}
+    # Check for form submission data
+    if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+        app.logger.info('Processing FORM data')
+        data = {
+            'name': request.form['name'],
+        }
+    else:
+        app.logger.info('Processing JSON data')
+        data = request.get_json()
+    category = Category()
+    category.deserialize(data)
+    category.save()
+    message = category.serialize()
+    return make_response(jsonify(message), status.HTTP_201_CREATED,
+                         {'Location': url_for('get_categories', category_id=category.id, _external=True)})
+
+######################################################################
+# UPDATE AN EXISTING CATEGORY
+######################################################################
+@app.route('/categories/<int:category_id>', methods=['PUT'])
+def update_categories(category_id):
+    """
+    Update a Category
+
+    This endpoint will update a Category based the body that is posted
+    """
+    app.logger.info('Updating a Category with ID:(%s)...', category_id)
+    category = Category.find_or_404(category_id)
+    category.deserialize(request.get_json())
+    category.id = category_id
+    category.save()
+    return make_response(jsonify(category.serialize()), status.HTTP_200_OK)
+
+######################################################################
+# DELETE A CATEGORY
+######################################################################
+@app.route('/categories/<int:category_id>', methods=['DELETE'])
+def delete_categories(category_id):
+    """
+    Delete a Category
+
+    This endpoint will delete a Category based the id specified in the path
+    """
+    app.logger.info('Delete a Category with ID:(%s)...', category_id)
+    category = Category.find(category_id)
+    if category:
+        category.delete()
+    return make_response('', status.HTTP_204_NO_CONTENT)
+
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S

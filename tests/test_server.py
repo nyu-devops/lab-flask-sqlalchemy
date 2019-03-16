@@ -76,7 +76,7 @@ class TestPetServer(unittest.TestCase):
         self.assertTrue('Pet Demo REST API Service' in resp.data)
 
     def test_get_pet_list(self):
-        """ Get a ist of Pets """
+        """ Get a list of Pets """
         resp = self.app.get('/pets')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(len(resp.data) > 0)
@@ -173,18 +173,18 @@ class TestPetServer(unittest.TestCase):
         self.assertEqual(new_count, pet_count - 1)
 
     def test_create_pet_with_no_data(self):
-        """ Try and create with no data """
+        """ Try and create Pet with no data """
         resp = self.app.post('/pets', content_type='application/json')
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_pet_with_no_name(self):
-        """ Try and create with no name """
+        """ Try and create Pet with no name """
         new_pet = {'category_id': self.dog_id, 'available': True}
         resp = self.app.post('/pets', json=new_pet, content_type='application/json')
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_pet_no_content_type(self):
-        """ Create without a Context-Type """
+        """ Create Pet without a Context-Type """
         new_pet = '{"available": true, "category_id": ' + str(self.dog_id) + ', "name": "fifi"}'
         resp = self.app.post('/pets', data=new_pet)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
@@ -229,6 +229,108 @@ class TestPetServer(unittest.TestCase):
         """ Test for method now allowed """
         resp = self.app.put('/pets')
         self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+######################################################################
+#  T E S T   C A T E G O R I E S
+######################################################################
+
+
+    def test_get_category_list(self):
+        """ Get a list of Categories """
+        resp = self.app.get('/categories')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue(len(resp.data) > 0)
+
+    def test_get_category(self):
+        """ Get a single Category """
+        # get the id of a pet
+        category = Category.find_by_name('Dog')[0]
+        resp = self.app.get('/categories/{}'.format(category.id),
+                            content_type='application/json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(data['name'], category.name)
+
+    def test_get_category_not_found(self):
+        """ Get a Category that doesn't exist """
+        resp = self.app.get('/categories/0')
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_create_category(self):
+        """ Create a new Category """
+        new_category = dict(name='Snake')
+        resp = self.app.post('/categories', json=new_category, content_type='application/json')
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        # Make sure location header is set
+        location = resp.headers.get('Location', None)
+        self.assertTrue(location != None)
+        # Check the data is correct
+        new_json = resp.get_json()
+        self.assertEqual(new_json['name'], 'Snake')
+
+    def test_create_category_with_no_data(self):
+        """ Try and create Category with no data """
+        resp = self.app.post('/categories', content_type='application/json')
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_category_with_no_name(self):
+        """ Try and create Category with no name """
+        new_category = {}
+        resp = self.app.post('/categories', json=new_category, content_type='application/json')
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_category_no_content_type(self):
+        """ Create Category without a Context-Type """
+        new_category = dict(name='Snake')
+        resp = self.app.post('/categories', data=str(new_category))
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_category(self):
+        """ Update an existing Category """
+        category = Category.find_by_name('Dog')[0]
+        resp = self.app.get('/categories/{}'.format(category.id),
+                            content_type='application/json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(data['name'], category.name)
+        # Change the name to Canine
+        data['name'] = 'Canine'
+        resp = self.app.put('/categories/{}'.format(data['id']), json=data, content_type='application/json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        new_json = resp.get_json()
+        self.assertEqual(new_json['name'], 'Canine')
+
+    def test_update_category_with_no_data(self):
+        """ Update a Category with no data passed """
+        category = Category.find_by_name('Dog')[0]
+        resp = self.app.put('/categories/{}'.format(category.id), json={}, content_type='application/json')
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_category_with_text_data(self):
+        """ Update a Category with text data """
+        category = Category.find_by_name('Dog')[0]
+        resp = self.app.put('/categories/{}'.format(category.id), data="hello", content_type='text/plain')
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_category_not_found(self):
+        """ Update a Category that doesn't exist """
+        updated_category = dict(name='Foo')
+        resp = self.app.put('/categories/0', json=updated_category, content_type='application/json')
+        self.assertEquals(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_category(self):
+        """ Delete a Category """
+        # Create a category with no pets
+        category = dict(name='Snake')
+        resp = self.app.post('/categories', json=category, content_type='application/json')
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        data = resp.get_json()
+        # Delete the new category
+        resp = self.app.delete('/categories/{}'.format(data['id']),
+                               content_type='application/json')
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(len(resp.data), 0)
 
 
 ######################################################################

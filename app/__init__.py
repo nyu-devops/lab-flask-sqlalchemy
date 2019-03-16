@@ -1,4 +1,4 @@
-# Copyright 2016, 2017 John J. Rofrano. All Rights Reserved.
+# Copyright 2016, 2019 John J. Rofrano. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,12 +21,17 @@ This module contains the microservice code for
 """
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-import pymysql
+from flask_migrate import Migrate
+# Uncomment next line to use MySQL
+#import pymysql
+# Uncomment next line to use PostgreSQL
+import psycopg2
 
-# These next lines are positional:
+# These next 4 lines are positional:
 # 1) We need to create the Flask app
-# 2) Then configure it
+# 2) Then configure it for the database
 # 3) Then initialize SQLAlchemy after it has been configured
+# 4) Finally we can import our database models
 
 app = Flask(__name__)
 # Load the confguration
@@ -36,5 +41,6 @@ with app.app_context():
 
 # Initialize SQLAlchemy
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 from app import server, models
