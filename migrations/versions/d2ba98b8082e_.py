@@ -36,7 +36,7 @@ def upgrade():
     ### Seed Data ###
     op.bulk_insert(category_table,
         [
-            {'name':'Dog'},
+            {'name': 'Dog'},
             {'name': 'Cat'}
         ]
     )

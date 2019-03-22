@@ -7,29 +7,26 @@ services:
     ports:
       - 5000:5000
     environment:
-      DATABASE_URI: "mysql+pymysql://dbuser:passw0rd@db:3306/petstore"
-    networks:
-      - overlay
+      DATABASE_URI: "postgres://postgres:passw0rd@postgres:5432/postgres"
     depends_on:
-      - db
-
-  db:
-    image: mariadb:latest
-    hostname: mysql
-    ports:
-      - 3306:3306
-    volumes:
-      - dbdata:/var/lib/mysql
-    environment:
-      MYSQL_RANDOM_ROOT_PASSWORD: "true"
-      MYSQL_USER: dbuser
-      MYSQL_PASSWORD: passw0rd
-      MYSQL_DATABASE: petstore
+      - postgres
     networks:
-      - overlay
+      - web
+
+  postgres:
+    image: postgres:alpine
+    hostname: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - psql_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: passw0rd
+    networks:
+      - web
 
 volumes:
-  dbdata:
+  psql_data:
 
 networks:
-  overlay:
+  web:

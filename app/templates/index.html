@@ -16,7 +16,9 @@
 			<td>
 				<h1 id = "message">Pet Demo REST API Service</h1>
 				<p class='description'>
-				GET <a href="/pets" id = "get_pets">/pets</a> to see all the pets.
+        GET <a href="/pets" id = "get_pets">/pets</a> to see all the pets.
+				<br><br>
+				GET <a href="/categories" id = "get_categories">/categories</a> to see all the categories.
 				<br><br>
                 GET <a href="/pets?category=dog">/pets?category=dog</a> to see all of the pets in the 'dog' category.
 				<br><br>
@@ -27,28 +29,32 @@
 				DELETE /pets/{id} removes a pet from the DB using an ID.
 				<br><br>
 				POST /pets creates an new pet.
-                <p>Example Data:</p>
-                <pre>
+        <p>Example Data:</p>
+        <pre>
     {
         "name": "bowser",
-        "category": "dog"
+        "category": 1,
+        "available": true
     }
-                </pre>
-                Try it now:
-                <form id="create_pets" action="/pets" method="post" enctype="application/json">
-                    <input type="hidden" name="available" value="True" />
-                    <div>
-                      <label for="name">What is the name of the pet?</label>
-                      <input name="name" id="name" value="Bowser">
-                    </div>
-                    <div>
-                      <label for="category">What category is the pet?</label>
-                      <input name="category" id="category" value="Dog">
-                    </div>
-                    <div>
-                      <button id="submit">Create Pet</button>
-                    </div>
-                </form>
+        </pre>
+        Try it now:
+        <hr/>
+        <h2>Create Pet</h2>
+        <form method="POST" action="/pets">
+            {{ form.hidden_tag() }}
+            <p>{{ form.name.label }} {{ form.name(size=20) }}</p>
+            <p>{{ form.category_id.label }} {{ form.category_id() }}</p>
+            <p>{{ form.available() }} {{ form.available.label }}</p>
+            <p>{{ form.submit() }}</p>
+        </form>
+        <hr/>
+        <h2>Create Category</h2>
+        <form method="POST" action="/categories" enctype="application/json">
+            {{ category.hidden_tag() }}
+            <p>{{ category.name.label }} {{ category.name(size=20) }}</p>
+            <p>{{ category.submit() }}</p>
+        </form>
+        <hr/>
 			</td>
 		</tr>
 	</table>

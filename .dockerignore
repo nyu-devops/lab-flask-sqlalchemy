@@ -1,3 +1,10 @@
+# Not needed by runtime
+.git/
+Dockerfile
+Jenkinsfile
+Vagrantfile
+docker-compose.yml
+
 # Local environment
 .DS_Store
 Thumbs.db

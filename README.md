@@ -14,7 +14,7 @@ The resource model is persistences using SQLAlchemy to keep the application simp
 
 ## Prerequisite Installation using Vagrant
 
-The easiest way to use this lab is with Vagrant and VirtualBox. if you don't have this software the first step is down download and install it.
+The easiest way to use this lab is with **Vagrant** and **VirtualBox**. if you don't have this software the first step is down download and install it.
 
 Download [VirtualBox](https://www.virtualbox.org/)
 
@@ -30,18 +30,21 @@ Then all you have to do is clone this repo and invoke vagrant:
 
 The `Vagrantfile` uses Docker to bring up a container running **MariaDB** so that you can test with an actual MySQL database indie of the virtual machine.
 
-## Create the database
+## Prerequisite Installation using Docker
 
-Becasue this repo uses MySQL you will need to create the database before using it. This is automatcially taken care of for you in the `Vagrantfile` but if you want to create them manually the command is:
+If you want to use **Docker** instead of Vagrant and VirtualBox you will need to have Docker installed first. Use either Docker for Mac or Docker for Windows depending on your computer. Then the command to initialize the database is:
 
 ```
-cd /vagrant
-db_create.py development
-db_create.py test
+    docker-compose run --rm web flask db upgrade
 ```
-This will create both the `developement` and `test` databases.
 
-You can now run `nosetests` to run the tests.
+To run the application use:
+
+```
+    docker-compose up -d
+```
+
+You can skip the next section on creating the database. Docker-compose just did that for you.
 
 ## Manually running the Tests
 
@@ -73,11 +76,12 @@ If the VM is no longer needed you can remove it with:
 
 ## What's featured in the project?
 
-    * db_create.py -- used to create the database
+    * manage.py -- used to create the database and schema
     * app/server.py -- the main Service using Python Flask
     * app/models.py -- the database models
     * app/vcap_services.py -- Cloud Foundry VCAP_SERVICES support
     * tests/test_server.py -- test cases using unittest
-    * tests/test_pets.py -- test cases using just the Pet model
+    * tests/test_pets.py -- test cases using just Pets from the Pet model
+    * tests/test_categories.py -- test cases using just Category from the Pet model
 
-This repo is part of the DevOps course CSCI-GA.3033-013/014 at NYU.
+This repo is part of the DevOps course CSCI-GA.2820-001/002 at NYU taught by John Rofrano.

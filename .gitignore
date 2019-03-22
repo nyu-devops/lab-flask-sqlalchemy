@@ -5,6 +5,9 @@ Thumbs.db
 # Text reports
 unittests.xml
 
+# SonarQube files
+.sonarlint
+
 # Vagrant
 .vagrant
 

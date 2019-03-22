@@ -29,9 +29,10 @@ POST /pets/{id}/purchase - Action to purchase a Pet
 
 import sys
 import logging
-from flask import jsonify, request, url_for, make_response, abort
+from flask import jsonify, request, url_for, make_response, abort, render_template
 from flask_api import status    # HTTP Status Codes
 from app.models import Pet, Category, DataValidationError
+from app.forms import PetForm, CategoryForm
 from app import app
 
 ######################################################################
@@ -83,7 +84,14 @@ def internal_server_error(error):
 @app.route('/')
 def index():
     """ Send back the home page """
-    return app.send_static_file('index.html')
+    app.logger.info('Home page request')
+    category_select = [(category.id, category.name) for category in Category.all()]
+    app.logger.info('Categories: %s', category_select)
+    form = PetForm()
+    form.category_id.choices = category_select
+    category = CategoryForm()
+    return render_template('index.html', form=form, category=category)
+    # static page -> return app.send_static_file('index.html')
 
 ######################################################################
 # LIST ALL PETS
@@ -148,16 +156,27 @@ def create_pets():
     app.logger.info('Creating Pet...')
     data = {}
     # Check for form submission data
-    if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+    form = PetForm()
+    form.category_id.choices = [(category.id, category.name) for category in Category.all()]
+    if form.validate_on_submit():
         app.logger.info('Processing FORM data')
         data = {
-            'name': request.form['name'],
-            'category_id': request.form['category'],
-            'available': request.form['available'].lower() in ['true', '1', 't']
+            'name': form.name.data,
+            'category_id': form.category_id.data,
+            'available': form.available.data
         }
+    # if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+    #     app.logger.info('Processing FORM data')
+    #     app.logger.info('Form: %s', request.form)
+    #     data = {
+    #         'name': request.form['name'],
+    #         'category_id': request.form['category'],
+    #         'available': request.form['available'].lower() in ['true', '1', 't']
+    #     }
     else:
         app.logger.info('Processing JSON data')
         data = request.get_json()
+    app.logger.debug('Data: %s', data)
     pet = Pet()
     pet.deserialize(data)
     pet.save()
