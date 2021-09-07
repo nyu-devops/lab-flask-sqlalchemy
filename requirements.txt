@@ -2,7 +2,7 @@ Flask==1.0.2
 Flask-API==1.0
 Flask-WTF==0.14.2
 Flask-SQLAlchemy==2.3.2
-SQLAlchemy==1.2.14
+SQLAlchemy==1.2.18
 Flask-Migrate==2.3.1
 # Uncomment next line to use MySQL
 #PyMySQL==0.7.11
@@ -21,3 +21,4 @@ pinocchio==0.4.2
 # Code coverage
 coverage==4.2
 codecov==2.0.5
+pygments>=2.7.4 # not directly required, pinned by Snyk to avoid a vulnerability
