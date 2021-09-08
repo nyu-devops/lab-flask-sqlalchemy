@@ -21,3 +21,4 @@ pinocchio==0.4.2
 # Code coverage
 coverage==4.2
 codecov==2.0.5
+wtforms>=3.0.0a1 # not directly required, pinned by Snyk to avoid a vulnerability
