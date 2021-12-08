@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Build and run in a Python container
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # use a known build environment
+    container: python:3.8-slim
+
+    # Required PostgreSQL services    
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          
+    # Steps for the build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip wheel
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          
+      - name: Run unit tests with nose
+        run: nosetests
+        env:
+          DATABASE_URI: "postgres://postgres:postgres@postgres:5432/testdb"
+
+      - name: Upload code coverage
+        uses: codecov/codecov-action@v2
