@@ -21,4 +21,3 @@ pinocchio==0.4.3
 
 # Code coverage
 coverage==6.1.2
-codecov==2.1.12
