@@ -26,7 +26,7 @@ from app import app, db
 from app.models import Pet, Category, DataValidationError
 
 # DATABASE_URI = 'mysql+pymysql://root:passw0rd@localhost:3306/test'
-DATABASE_URI = os.getenv('DATABASE_URI', "postgres://postgres:postgres@localhost:5432/postgres")
+DATABASE_URI = os.getenv('DATABASE_URI', "postgresql://postgres:postgres@localhost:5432/postgres")
 
 
 ######################################################################
